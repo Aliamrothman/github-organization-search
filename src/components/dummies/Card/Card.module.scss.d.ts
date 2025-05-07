@@ -5,4 +5,5 @@ export declare const name: string
 export declare const placeholder: string
 export declare const stars: string
 export declare const stats: string
+export declare const updated: string
 export declare const userName: string

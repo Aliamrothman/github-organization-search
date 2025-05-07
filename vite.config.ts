@@ -5,6 +5,7 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/github-organization-search/',
   optimizeDeps: {
     include: ['react/jsx-runtime']
   },

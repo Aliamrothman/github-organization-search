@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://Aliamrothman.github.io/github-organization-search",
   "scripts": {
     "dev": "concurrently \"vite\" \"typed-scss-modules src/**/*.module.scss --aliasPrefixes.styles src/styles -w --ignoreInitial --nameFormat dashes\"",
     "build": "tsc && vite build",
@@ -17,12 +18,15 @@
     "check:typescript": "tsc",
     "generate-scss-types": "typed-scss-modules src/**/*.module.scss --aliasPrefixes.styles src/styles --nameFormat dashes",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.10",
     "@tanstack/react-router": "^1.92.3",
     "@types/node": "^22.10.2",
+    "antd": "^5.25.0",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "decimal.js": "^10.4.3",
@@ -68,6 +72,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "eslint-plugin-react-refresh": "0.4.3",
     "eslint-plugin-storybook": "^0.11.6",
+    "gh-pages": "^6.3.0",
     "playwright": "^1.51.1",
     "plop": "^4.0.1",
     "prettier": "3.0.3",
