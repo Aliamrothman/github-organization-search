@@ -1,0 +1,27 @@
+{
+    "stylelint.packageManager": "npm",
+    "stylelint.config": null,
+    "stylelint.validate": [
+        "css",
+        "scss"
+    ],
+    "stylelint.snippet": [
+        "css",
+        "less",
+        "postcss",
+        "scss"
+    ],
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit"
+        },
+    },
+    "editor.formatOnSave": true,
+    "i18n-ally.localesPaths": [
+        "public/locales"
+    ],
+    "i18n-ally.keystyle": "nested",
+    "i18n-ally.pathMatcher": "{locale}/{namespace}.json",
+    "i18n-ally.namespace": true,
+}

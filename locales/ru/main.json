@@ -1,0 +1,8 @@
+{
+    "personsListHeader": {
+        "fullName": "Полное имя",
+        "companyTitle": "Должность",
+        "companyName": "Название компании",
+        "age": "Возраст"
+    }
+}
