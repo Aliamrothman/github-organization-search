@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { searchOrganizationRepos } from '../services/githubService';
-import { Card, Input, Button, Select, Spin, Empty } from 'antd';
+import { Card, Input, Button, Select, Spin, Empty, message } from 'antd';
 import { SearchOutlined, StarFilled } from '@ant-design/icons';
 import { useNavigate } from '@tanstack/react-router';
 import '../styles/SearchPage.css';
@@ -36,9 +36,19 @@ const SearchPage = () => {
       setLanguages(['all', ...uniqueLanguages]);
       setSelectedLanguage('all');
     } catch (error) {
+      console.error('Search error:', error);
       setRepos([]);
       setLanguages(['all']);
       setSelectedLanguage('all');
+      if (error.message === 'Organization not found') {
+        message.error('Organization not found. Please check the name and try again.');
+      } else if (error.message.includes('401')) {
+        message.error('Authentication error. Please try again later.');
+      } else if (error.message.includes('403')) {
+        message.error('Rate limit exceeded. Please try again later.');
+      } else {
+        message.error('An error occurred while searching. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
