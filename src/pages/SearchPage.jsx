@@ -31,6 +31,13 @@ const SearchPage = () => {
     setLoading(true);
     try {
       const data = await searchOrganizationRepos(searchTerm);
+      if (!data || data.length === 0) {
+        message.warning('No repositories found for this organization.');
+        setRepos([]);
+        setLanguages(['all']);
+        setSelectedLanguage('all');
+        return;
+      }
       setRepos(data);
       const uniqueLanguages = [...new Set(data.map(repo => repo.language).filter(Boolean))];
       setLanguages(['all', ...uniqueLanguages]);
@@ -44,7 +51,7 @@ const SearchPage = () => {
         message.error('Organization not found. Please check the name and try again.');
       } else if (error.message.includes('401')) {
         message.error('Authentication error. Please try again later.');
-      } else if (error.message.includes('403')) {
+      } else if (error.message.includes('403') || error.message.includes('Rate limit')) {
         message.error('Rate limit exceeded. Please try again later.');
       } else {
         message.error('An error occurred while searching. Please try again.');
