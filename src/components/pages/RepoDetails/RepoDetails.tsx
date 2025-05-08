@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 
-const headers = {
-    'Accept': 'application/vnd.github.v3+json',
-    'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`
+const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json'
 };
+if (import.meta.env.VITE_GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`;
+}
 
 interface Repo {
     name: string;

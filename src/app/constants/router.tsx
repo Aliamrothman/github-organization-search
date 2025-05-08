@@ -37,5 +37,6 @@ const routeTree = rootRoute.addChildren([indexRoute, userDetailsRoute, notFoundR
 export const router = new Router({
   routeTree,
   defaultPreload: 'intent',
-  defaultPreloadStaleTime: 0
+  defaultPreloadStaleTime: 0,
+  basepath: '/github-organization-search',
 })
