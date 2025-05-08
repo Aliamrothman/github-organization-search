@@ -131,6 +131,7 @@ body {
     object-fit: cover;
     background: #ff5c5c;
     display: block;
+    overflow: hidden;
 }
 
 .repo-avatar-fallback {
