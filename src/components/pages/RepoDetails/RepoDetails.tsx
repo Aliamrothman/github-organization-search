@@ -42,20 +42,54 @@ export const RepoDetails: React.FC = () => {
             setError('');
             try {
                 // جلب بيانات الريبو
-                const repoRes = await fetch(`https://api.github.com/repos/${org}/${repo}`, { headers });
-                if (!repoRes.ok) throw new Error('Repository not found');
+                const repoRes = await fetch(`https://api.github.com/repos/${org}/${repo}`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (!repoRes.ok) {
+                    const errorData = await repoRes.json().catch(() => null);
+                    console.error('GitHub API Error:', {
+                        status: repoRes.status,
+                        statusText: repoRes.statusText,
+                        error: errorData
+                    });
+                    throw new Error(`GitHub API Error: ${repoRes.status} ${repoRes.statusText}`);
+                }
+
                 const repoJson = await repoRes.json();
                 setRepoData(repoJson);
 
                 // جلب المساهمين
-                const contribRes = await fetch(`https://api.github.com/repos/${org}/${repo}/contributors?per_page=10`, { headers });
-                setContributors(contribRes.ok ? await contribRes.json() : []);
+                const contribRes = await fetch(`https://api.github.com/repos/${org}/${repo}/contributors?per_page=10`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (contribRes.ok) {
+                    const contribData = await contribRes.json();
+                    setContributors(contribData);
+                } else {
+                    console.warn('Failed to fetch contributors:', contribRes.status);
+                    setContributors([]);
+                }
 
                 // جلب الفروع
-                const branchesRes = await fetch(`https://api.github.com/repos/${org}/${repo}/branches?per_page=10`, { headers });
-                setBranches(branchesRes.ok ? await branchesRes.json() : []);
+                const branchesRes = await fetch(`https://api.github.com/repos/${org}/${repo}/branches?per_page=10`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (branchesRes.ok) {
+                    const branchesData = await branchesRes.json();
+                    setBranches(branchesData);
+                } else {
+                    console.warn('Failed to fetch branches:', branchesRes.status);
+                    setBranches([]);
+                }
             } catch (e) {
-                setError('Repository not found or API error');
+                console.error('Error in fetchAll:', e);
+                setError(e instanceof Error ? e.message : 'Repository not found or API error');
             } finally {
                 setLoading(false);
             }

@@ -56,14 +56,27 @@ export const UserDetails: React.FC = () => {
     const fetchAllBranches = async () => {
         let allBranches: Branch[] = [];
         let page = 1;
-        while (true) {
-            const res = await fetch(`https://api.github.com/repos/${org}/${repo}/branches?per_page=100&page=${page}`, { headers });
-            if (!res.ok) break;
-            const data = await res.json();
-            if (data.length === 0) break;
-            allBranches = allBranches.concat(data);
-            if (data.length < 100) break;
-            page++;
+        try {
+            while (true) {
+                const res = await fetch(`https://api.github.com/repos/${org}/${repo}/branches?per_page=100&page=${page}`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (!res.ok) {
+                    console.warn('Failed to fetch branches page:', res.status);
+                    break;
+                }
+
+                const data = await res.json();
+                if (data.length === 0) break;
+
+                allBranches = allBranches.concat(data);
+                if (data.length < 100) break;
+                page++;
+            }
+        } catch (e) {
+            console.error('Error fetching branches:', e);
         }
         return allBranches;
     };
@@ -88,14 +101,37 @@ export const UserDetails: React.FC = () => {
             setError('');
             try {
                 // جلب بيانات الريبو
-                const repoRes = await fetch(`https://api.github.com/repos/${org}/${repo}`, { headers });
-                if (!repoRes.ok) throw new Error('Repository not found');
+                const repoRes = await fetch(`https://api.github.com/repos/${org}/${repo}`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (!repoRes.ok) {
+                    const errorData = await repoRes.json().catch(() => null);
+                    console.error('GitHub API Error:', {
+                        status: repoRes.status,
+                        statusText: repoRes.statusText,
+                        error: errorData
+                    });
+                    throw new Error(`GitHub API Error: ${repoRes.status} ${repoRes.statusText}`);
+                }
+
                 const repoJson = await repoRes.json();
                 setRepoData(repoJson);
 
                 // جلب المساهمين
-                const contribRes = await fetch(`https://api.github.com/repos/${org}/${repo}/contributors?per_page=10`, { headers });
-                setContributors(contribRes.ok ? await contribRes.json() : []);
+                const contribRes = await fetch(`https://api.github.com/repos/${org}/${repo}/contributors?per_page=10`, {
+                    headers,
+                    method: 'GET'
+                });
+
+                if (contribRes.ok) {
+                    const contribData = await contribRes.json();
+                    setContributors(contribData);
+                } else {
+                    console.warn('Failed to fetch contributors:', contribRes.status);
+                    setContributors([]);
+                }
 
                 // جلب جميع الفروع
                 const allBranches = await fetchAllBranches();
@@ -107,20 +143,28 @@ export const UserDetails: React.FC = () => {
                         ...headers,
                         'Accept': 'application/vnd.github.inertia-preview+json',
                     },
+                    method: 'GET'
                 });
-                setProjects(projectsRes.ok ? await projectsRes.json() : []);
+
+                if (projectsRes.ok) {
+                    const projectsData = await projectsRes.json();
+                    setProjects(projectsData);
+                } else {
+                    console.warn('Failed to fetch projects:', projectsRes.status);
+                    setProjects([]);
+                }
 
                 if (repoJson?.owner?.login) {
                     fetchContributions(repoJson.owner.login);
                 }
             } catch (e) {
-                setError('Repository not found or API error');
+                console.error('Error in fetchAll:', e);
+                setError(e instanceof Error ? e.message : 'Repository not found or API error');
             } finally {
                 setLoading(false);
             }
         };
         fetchAll();
-        // eslint-disable-next-line
     }, [org, repo]);
 
     // جلب العدد الكلي للمساهمين من repoData إذا متاح
