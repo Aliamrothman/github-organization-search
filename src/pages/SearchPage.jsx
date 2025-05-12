@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { searchOrganizationRepos } from '../services/githubService';
+import React, { useState, useEffect } from 'react';
 import { Card, Input, Button, Select, Spin, Empty, message } from 'antd';
-import { SearchOutlined, StarFilled } from '@ant-design/icons';
-import { useNavigate } from '@tanstack/react-router';
+import { SearchOutlined, StarFilled, ArrowLeftOutlined, EyeOutlined, ForkOutlined } from '@ant-design/icons';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import '../styles/SearchPage.css';
 
 const { Option } = Select;
@@ -19,43 +18,76 @@ function formatDate(dateStr) {
 }
 
 const SearchPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const search = useSearch();
+  const [searchTerm, setSearchTerm] = useState(search.org || '');
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [languages, setLanguages] = useState(['all']);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+  useEffect(() => {
+    if (search.org) {
+      setSearchTerm(search.org);
+      handleSearch(search.org);
+    }
+  }, [search.org]);
+
+  const handleSearch = async (term = searchTerm) => {
+    if (!term.trim()) {
+      setError('Please enter an organization name');
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+    setRepos([]);
+    setLanguages([]);
+    setSelectedLanguage('all');
+
     try {
-      const data = await searchOrganizationRepos(searchTerm);
-      if (!data || data.length === 0) {
-        message.warning('No repositories found for this organization.');
-        setRepos([]);
-        setLanguages(['all']);
-        setSelectedLanguage('all');
+      const token = import.meta.env.VITE_GITHUB_TOKEN;
+      const headers = {
+        'Accept': 'application/vnd.github.v3+json'
+      };
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+
+      const response = await fetch(
+        `https://api.github.com/orgs/${term}/repos?per_page=100`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Organization not found');
+        } else if (response.status === 401) {
+          throw new Error(token ? 'Authentication failed. Please check your GitHub token.' : 'Authentication failed. Please use a valid GitHub token in development mode.');
+        } else if (response.status === 403) {
+          throw new Error(token ? 'Rate limit exceeded. Please try again later.' : 'Rate limit exceeded. Please add a GitHub token in development mode to increase the limit.');
+        }
+        throw new Error(`GitHub API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.length === 0) {
+        setError('No repositories found for this organization');
         return;
       }
-      setRepos(data);
-      const uniqueLanguages = [...new Set(data.map(repo => repo.language).filter(Boolean))];
-      setLanguages(['all', ...uniqueLanguages]);
-      setSelectedLanguage('all');
+
+      const uniqueLanguages = [...new Set(data
+        .map(repo => repo.language)
+        .filter(lang => lang !== null))];
+      setLanguages(uniqueLanguages);
+
+      const sortedRepos = data.sort((a, b) => b.stargazers_count - a.stargazers_count);
+      setRepos(sortedRepos);
     } catch (error) {
-      console.error('Search error:', error);
-      setRepos([]);
-      setLanguages(['all']);
-      setSelectedLanguage('all');
-      if (error.message === 'Organization not found') {
-        message.error('Organization not found. Please check the name and try again.');
-      } else if (error.message.includes('401')) {
-        message.error('Authentication error. Please try again later.');
-      } else if (error.message.includes('403') || error.message.includes('Rate limit')) {
-        message.error('Rate limit exceeded. Please try again later.');
-      } else {
-        message.error('An error occurred while searching. Please try again.');
-      }
+      console.error('Error searching organization repos:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -68,7 +100,15 @@ const SearchPage = () => {
   const handleRepoClick = (repo) => {
     navigate({
       to: '/org/$org/repo/$repo',
-      params: { org: repo.owner.login, repo: repo.name }
+      params: { org: repo.owner.login, repo: repo.name },
+      search: { org: searchTerm }
+    });
+  };
+
+  const handleBackToSearch = () => {
+    navigate({
+      to: '/',
+      search: { org: searchTerm }
     });
   };
 
@@ -79,12 +119,12 @@ const SearchPage = () => {
           placeholder="Enter organization name"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onPressEnter={handleSearch}
+          onPressEnter={() => handleSearch()}
           className="search-input-custom"
         />
         <Button
           className="search-btn-custom"
-          onClick={handleSearch}
+          onClick={() => handleSearch()}
           icon={<SearchOutlined style={{ fontSize: 22 }} />}
         />
       </div>
@@ -144,6 +184,14 @@ const SearchPage = () => {
                         <StarFilled style={{ color: '#FFA940', marginRight: 4, fontSize: 18 }} />
                         {repo.stargazers_count}
                       </span>
+                      <span className="repo-watchers-custom">
+                        <EyeOutlined style={{ marginRight: 4 }} />
+                        {repo.watchers_count}
+                      </span>
+                      <span className="repo-forks-custom">
+                        <ForkOutlined style={{ marginRight: 4 }} />
+                        {repo.forks_count}
+                      </span>
                       <span className="repo-updated-custom">
                         Updated {formatDate(repo.updated_at)}
                       </span>
@@ -161,4 +209,4 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default SearchPage; 
