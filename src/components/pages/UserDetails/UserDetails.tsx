@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useParams, useNavigate } from '@tanstack/react-router';
+import { StarIcon, EyeIcon, ForkIcon, IssuesIcon } from '../../ui/CustomSVG/RepositoryIcons';
+import styles from '../../ui/CustomSVG/styles.module.scss';
+import GitHubCalendar from 'react-github-calendar';
+import ContributionGraph from '../ContributionGraph';
 
 const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json'
@@ -44,6 +48,7 @@ interface ContributionDay {
 
 export const UserDetails: React.FC = () => {
     const { org, repo } = useParams({ from: '/org/$org/repo/$repo' });
+    const navigate = useNavigate();
     const [repoData, setRepoData] = useState<Repo | null>(null);
     const [contributors, setContributors] = useState<Contributor[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
@@ -173,120 +178,84 @@ export const UserDetails: React.FC = () => {
     if (loading) return <div>Loading...</div>;
     if (error || !repoData) return <div style={{ color: 'red' }}>{error || 'Repository not found'}</div>;
 
+    // ألوان شبكة المساهمات
+    const getContributionColor = (count: number) => {
+        if (count === 0) return '#E0E0E0'; // رمادي فاتح
+        if (count === 1) return '#A7F3D0'; // أخضر فاتح
+        if (count <= 5) return '#34D399'; // أخضر متوسط
+        return '#059669'; // أخضر غامق
+    };
+
+    // مفتاح الألوان (legend)
+    const legend = [
+        { color: '#A7F3D0', label: '1 commit' },
+        { color: '#34D399', label: '2-5 commits' },
+        { color: '#059669', label: '>5 commits' },
+        { color: '#E0E0E0', label: '0 commits' },
+    ];
+
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto', padding: 24 }}>
-            {/* زر زيارة صفحة الريبو على GitHub */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-                <a href={`https://github.com/${org}/${repo}`} target="_blank" rel="noopener noreferrer" style={{
-                    background: '#222', color: '#fff', padding: '7px 18px', borderRadius: 8, textDecoration: 'none', fontWeight: 500, fontSize: 15
-                }}>
-                    Visit on GitHub ↗
-                </a>
-            </div>
-            {/* رأس الريبو */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+        <div style={{ maxWidth: 340, margin: '0 auto', padding: 8, background: '#fff' }}>
+            {/* رأس الصفحة */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <button onClick={() => navigate({ to: '/', search: { org } })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginRight: 2 }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
                 {repoData.owner?.avatar_url ? (
-                    <img src={repoData.owner.avatar_url} alt={repoData.name} style={{ width: 48, height: 48, borderRadius: '50%', background: '#f66' }} />
+                    <img src={repoData.owner.avatar_url} alt={repoData.name} style={{ width: 32, height: 32, borderRadius: '50%', background: '#f66' }} />
                 ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f66', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 'bold' }}>{repoData.name[0].toUpperCase()}</div>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f66', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 'bold' }}>{repoData.name[0].toUpperCase()}</div>
                 )}
-                <div style={{ fontWeight: 'bold', fontSize: 22 }}>{repoData.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 18, color: '#222', marginLeft: 4 }}>{repoData.name}</div>
             </div>
-            {/* إحصائيات */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18, fontSize: 18 }}>
-                <span style={{ color: '#ffb400', display: 'flex', alignItems: 'center', gap: 4 }}>★{repoData.stargazers_count}</span>
-                <span style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}>👁️{repoData.watchers_count}</span>
-                <span style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}>🍴{repoData.forks_count}</span>
-                <span style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}>🐞{repoData.open_issues_count}</span>
+            {/* الإحصائيات */}
+            <div className={styles.iconsRowContainer}>
+                <span className={`repo-stars-custom ${styles.iconLabel}`}>
+                    <StarIcon />
+                    <span className={styles.iconText}>{repoData.stargazers_count}</span>
+                </span>
+                <span className={`repo-watchers-custom ${styles.iconLabel}`}>
+                    <EyeIcon />
+                    <span className={styles.iconText}>{repoData.watchers_count}</span>
+                </span>
+                <span className={`repo-forks-custom ${styles.iconLabel}`}>
+                    <ForkIcon />
+                    <span className={styles.iconText}>{repoData.forks_count}</span>
+                </span>
+                <span className={`repo-issues-custom ${styles.iconLabel}`}>
+                    <IssuesIcon />
+                    <span className={styles.iconText}>{repoData.open_issues_count}</span>
+                </span>
             </div>
             {/* الوصف */}
-            <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 4 }}>Description</div>
-            <div style={{ marginBottom: 18 }}>{repoData.description || 'No description.'}</div>
-            {/* المساهمات (شبكة تفاعلية) */}
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2, marginTop: 8 }}>Description</div>
+            <div style={{ marginBottom: 8, fontSize: 13, color: '#222' }}>{repoData.description || 'No description.'}</div>
+            {/* شبكة المساهمات */}
             <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 4 }}>Contributions</div>
-            <div style={{ marginBottom: 18, overflowX: 'auto' }}>
-                {contributions.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-                        {/* 53 أسبوع (أعمدة) */}
-                        {Array.from({ length: 53 }).map((_, weekIdx) => (
-                            <div key={weekIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {Array.from({ length: 7 }).map((_, dayIdx) => {
-                                    const day = contributions[weekIdx * 7 + dayIdx];
-                                    if (!day) return <div key={dayIdx} style={{ width: 12, height: 12 }} />;
-                                    return (
-                                        <div
-                                            key={dayIdx}
-                                            title={`${day.count} contributions on ${day.date}`}
-                                            style={{
-                                                width: 12,
-                                                height: 12,
-                                                background: day.color,
-                                                borderRadius: 2,
-                                                border: '1px solid #eee',
-                                                transition: 'background 0.2s',
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <span style={{ color: '#888' }}>No contributions data.</span>
-                )}
-            </div>
+            <ContributionGraph />
             {/* المساهمون */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontWeight: 'bold', fontSize: 18 }}>Contributors</span>
-                <span style={{ background: '#222', color: '#fff', borderRadius: 12, fontSize: 13, fontWeight: 600, padding: '2px 10px', marginLeft: 4 }}>{contributorsCount}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>Contributors</div>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 10, flexWrap: 'wrap' }}>
                 {contributors.slice(0, 12).map((c, i) => (
                     <a
                         key={i}
                         href={`https://github.com/${c.login}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title={c.login}
-                        style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                        style={{ width: 22, height: 22, borderRadius: '50%', background: '#FF5C5C', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, border: '1.5px solid #fff', overflow: 'hidden', textDecoration: 'none' }}
                     >
-                        {c.avatar_url ? (
-                            <img src={c.avatar_url} alt={c.login} style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid #fff', objectFit: 'cover', background: '#222' }} />
-                        ) : (
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#222', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 18 }}>{c.login[0].toUpperCase()}</div>
-                        )}
+                        {c.avatar_url ? <img src={c.avatar_url} alt={c.login} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.login[0].toUpperCase()}
                     </a>
                 ))}
-                {contributorsCount > 12 && (
-                    <a
-                        href={`https://github.com/${org}/${repo}/contributors`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ fontWeight: 500, fontSize: 15, color: '#1976d2', marginLeft: 8, textDecoration: 'none' }}
-                    >
-                        + {contributorsCount - 12} contributors
-                    </a>
-                )}
             </div>
-            {/* الفروع */}
-            <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 4 }}>Branches List</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 18 }}>
-                {branches.length === 0 && <span>No branches.</span>}
+            {/* قائمة الفروع */}
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>Branches List</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 10 }}>
+                {branches.length === 0 && <span style={{ fontSize: 12 }}>No branches.</span>}
                 {branches.map((b, i) => (
-                    <div key={i} style={{ color: b.protected ? '#888' : '#222', fontWeight: b.protected ? 400 : 500 }}>
-                        {b.name} {b.protected && <span style={{ fontSize: 13, color: '#888' }}>• PROTECTED</span>}
+                    <div key={i} style={{ color: b.protected ? '#aaa' : '#222', fontWeight: 500, fontSize: 13, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        {b.name} {b.protected && <span style={{ fontSize: 11, color: '#aaa', marginLeft: 2 }}>• PROTECTED</span>}
                     </div>
-                ))}
-            </div>
-            {/* المشاريع */}
-            <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 4 }}>Projects</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {projects.length === 0 && <span>No projects.</span>}
-                {projects.map((p) => (
-                    <a key={p.id} href={p.html_url} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', fontWeight: 500, textDecoration: 'none', fontSize: 16, border: '1px solid #eee', borderRadius: 8, padding: 8, marginBottom: 4 }}>
-                        <div style={{ fontWeight: 'bold', fontSize: 17 }}>{p.name}</div>
-                        <div style={{ color: '#444', fontSize: 15 }}>{p.body}</div>
-                    </a>
                 ))}
             </div>
         </div>

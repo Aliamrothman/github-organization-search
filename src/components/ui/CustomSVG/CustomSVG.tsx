@@ -1,15 +1,14 @@
-import { HTMLAttributes } from 'react'
-import { cc } from 'utils/combineClasses'
+import React from 'react'
 import styles from './styles.module.scss'
 
-interface Props extends HTMLAttributes<HTMLDivElement> {
-  children: JSX.Element
+interface CustomSVGProps {
+  children: React.ReactNode
   className?: string
 }
 
-const CustomSVG = ({ className, children, ...otherDivProps }: Props) => {
+const CustomSVG: React.FC<CustomSVGProps> = ({ children, className }) => {
   return (
-    <div className={cc(styles.customSvgRoot, className)} {...otherDivProps}>
+    <div className={`${styles.customSvgRoot} ${className || ''}`}>
       {children}
     </div>
   )

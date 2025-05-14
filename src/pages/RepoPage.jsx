@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Spin, Empty, message } from 'antd';
 import { useParams, useNavigate, useSearch } from '@tanstack/react-router';
-import { ArrowLeftOutlined, StarFilled, EyeOutlined, ForkOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { StarIcon, EyeIcon, ForkIcon, IssuesIcon } from '../components/ui/CustomSVG/RepositoryIcons';
+import styles from '../components/ui/CustomSVG/styles.module.scss';
 import '../styles/RepoPage.css';
 
 function getInitial(name) {
@@ -116,21 +118,22 @@ const RepoPage = () => {
                     <div className="repo-main-info">
                         <div className="repo-name-custom">{repoData.name}</div>
                         <div className="repo-owner-custom">{repoData.owner.login}</div>
-                        <div className="repo-meta-row">
-                            <span className="repo-stars-custom">
-                                <StarFilled style={{ color: '#FFA940', marginRight: 4, fontSize: 18 }} />
-                                {repoData.stargazers_count}
+                        <div className={styles.iconsRowContainer}>
+                            <span className={`repo-stars-custom ${styles.iconLabel}`}>
+                                <StarIcon />
+                                <span className={styles.iconText}>{repoData.stargazers_count}</span>
                             </span>
-                            <span className="repo-watchers-custom">
-                                <EyeOutlined style={{ marginRight: 4 }} />
-                                {repoData.watchers_count}
+                            <span className={`repo-watchers-custom ${styles.iconLabel}`}>
+                                <EyeIcon />
+                                <span className={styles.iconText}>{repoData.watchers_count}</span>
                             </span>
-                            <span className="repo-forks-custom">
-                                <ForkOutlined style={{ marginRight: 4 }} />
-                                {repoData.forks_count}
+                            <span className={`repo-forks-custom ${styles.iconLabel}`}>
+                                <ForkIcon />
+                                <span className={styles.iconText}>{repoData.forks_count}</span>
                             </span>
-                            <span className="repo-updated-custom">
-                                Updated {formatDate(repoData.updated_at)}
+                            <span className={`repo-issues-custom ${styles.iconLabel}`}>
+                                <IssuesIcon />
+                                <span className={styles.iconText}>{repoData.open_issues_count}</span>
                             </span>
                         </div>
                     </div>

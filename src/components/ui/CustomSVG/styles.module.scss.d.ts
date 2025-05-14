@@ -1,1 +1,13 @@
 export declare const customSvgRoot: string
+export declare const iconLabel: string
+export declare const iconsRowContainer: string
+export declare const iconText: string
+export declare const repoContainer: string
+export declare const repoForksCustom: string
+export declare const repoIssuesCustom: string
+export declare const repoMetaRow: string
+export declare const repoStarsCustom: string
+export declare const repoWatchersCustom: string
+export declare const section: string
+export declare const sectionContent: string
+export declare const sectionTitle: string

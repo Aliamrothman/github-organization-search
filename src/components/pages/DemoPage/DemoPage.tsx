@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card } from '../../dummies/Card/Card';
 import { Input } from '../../ui/Input/Input';
 import { IconButton } from '../../ui/IconButton/IconButton';
@@ -16,6 +16,63 @@ export const DemoPage: React.FC = () => {
     const [selectedLanguage, setSelectedLanguage] = useState('all');
     const [languages, setLanguages] = useState<string[]>(['all']);
     const navigate = useNavigate();
+
+    // استعادة نتائج البحث عند تحميل الصفحة
+    useEffect(() => {
+        const savedResults = localStorage.getItem('searchResults');
+        const savedQuery = localStorage.getItem('searchQuery');
+        const savedLanguages = localStorage.getItem('languages');
+        const savedSelectedLanguage = localStorage.getItem('selectedLanguage');
+
+        if (savedResults && savedQuery) {
+            setRepos(JSON.parse(savedResults));
+            setSearchQuery(savedQuery);
+            setHasSearched(true);
+
+            if (savedLanguages) {
+                setLanguages(JSON.parse(savedLanguages));
+            }
+            if (savedSelectedLanguage) {
+                setSelectedLanguage(savedSelectedLanguage);
+            }
+        }
+    }, []);
+
+    // مراقبة حدث الرجوع
+    useEffect(() => {
+        const handlePopState = () => {
+            const savedResults = localStorage.getItem('searchResults');
+            const savedQuery = localStorage.getItem('searchQuery');
+            const savedLanguages = localStorage.getItem('languages');
+            const savedSelectedLanguage = localStorage.getItem('selectedLanguage');
+
+            if (savedResults && savedQuery) {
+                setRepos(JSON.parse(savedResults));
+                setSearchQuery(savedQuery);
+                setHasSearched(true);
+
+                if (savedLanguages) {
+                    setLanguages(JSON.parse(savedLanguages));
+                }
+                if (savedSelectedLanguage) {
+                    setSelectedLanguage(savedSelectedLanguage);
+                }
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    // حفظ النتائج عند تغييرها
+    useEffect(() => {
+        if (repos.length > 0) {
+            localStorage.setItem('searchResults', JSON.stringify(repos));
+            localStorage.setItem('searchQuery', searchQuery);
+            localStorage.setItem('languages', JSON.stringify(languages));
+            localStorage.setItem('selectedLanguage', selectedLanguage);
+        }
+    }, [repos, searchQuery, languages, selectedLanguage]);
 
     const handleSearch = useCallback(async () => {
         if (!searchQuery.trim()) return;
@@ -45,6 +102,12 @@ export const DemoPage: React.FC = () => {
     };
 
     const handleRepoClick = (repo: GitHubRepo) => {
+        // حفظ النتائج قبل الانتقال
+        localStorage.setItem('searchResults', JSON.stringify(repos));
+        localStorage.setItem('searchQuery', searchQuery);
+        localStorage.setItem('languages', JSON.stringify(languages));
+        localStorage.setItem('selectedLanguage', selectedLanguage);
+
         navigate({
             to: '/org/$org/repo/$repo',
             params: { org: repo.owner.login, repo: repo.name }

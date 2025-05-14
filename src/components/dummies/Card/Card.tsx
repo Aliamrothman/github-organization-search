@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './Card.module.scss';
+import StartSvg from '../../../../picure/start.svg?react';
 
 export type CardProps = {
   avatar: string;
@@ -33,8 +34,13 @@ export const Card: React.FC<CardProps> = ({
         <div className={styles.name}>{name}</div>
         <div className={styles.userName}>{userName}</div>
         <div className={styles.stats}>
-          <span className={styles.stars}>★ {stars}</span>
-          <span className={styles.updated}>Updated {updatedAt}</span>
+          <span className={styles.stars} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <StartSvg style={{ width: 14, height: 14, color: '#FFB800' }} />
+            <span style={{ color: '#8c8c8c', fontWeight: 500, fontFamily: 'Roboto, sans-serif' }}>{stars}</span>
+          </span>
+          <span className={styles.updated} style={{ fontSize: 13, color: '#8c8c8c', fontFamily: 'Roboto, sans-serif' }}>
+            Updated {updatedAt}
+          </span>
         </div>
       </div>
     </div>

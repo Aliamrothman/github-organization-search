@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Input, Button, Select, Spin, Empty, message } from 'antd';
-import { SearchOutlined, StarFilled, ArrowLeftOutlined, EyeOutlined, ForkOutlined } from '@ant-design/icons';
+import { SearchOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useSearch } from '@tanstack/react-router';
+import { StarIcon, EyeIcon, ForkIcon, IssuesIcon } from '../components/ui/CustomSVG/RepositoryIcons';
+import styles from '../components/ui/CustomSVG/styles.module.scss';
 import '../styles/SearchPage.css';
 
 const { Option } = Select;
@@ -179,18 +181,22 @@ const SearchPage = () => {
                   <div className="repo-main-info">
                     <div className="repo-name-custom">{repo.name}</div>
                     <div className="repo-owner-custom">{repo.owner.login}</div>
-                    <div className="repo-meta-row">
-                      <span className="repo-stars-custom">
-                        <StarFilled style={{ color: '#FFA940', marginRight: 4, fontSize: 18 }} />
-                        {repo.stargazers_count}
+                    <div className={styles.repoMetaRow}>
+                      <span className={`repo-stars-custom ${styles.iconLabel}`}>
+                        <StarIcon />
+                        <span className={styles.iconText}>{repo.stargazers_count}</span>
                       </span>
-                      <span className="repo-watchers-custom">
-                        <EyeOutlined style={{ marginRight: 4 }} />
-                        {repo.watchers_count}
+                      <span className={`repo-watchers-custom ${styles.iconLabel}`}>
+                        <EyeIcon />
+                        <span className={styles.iconText}>{repo.watchers_count}</span>
                       </span>
-                      <span className="repo-forks-custom">
-                        <ForkOutlined style={{ marginRight: 4 }} />
-                        {repo.forks_count}
+                      <span className={`repo-forks-custom ${styles.iconLabel}`}>
+                        <ForkIcon />
+                        <span className={styles.iconText}>{repo.forks_count}</span>
+                      </span>
+                      <span className={`repo-issues-custom ${styles.iconLabel}`}>
+                        <IssuesIcon />
+                        <span className={styles.iconText}>{repo.open_issues_count}</span>
                       </span>
                       <span className="repo-updated-custom">
                         Updated {formatDate(repo.updated_at)}
