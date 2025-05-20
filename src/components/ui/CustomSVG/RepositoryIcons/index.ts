@@ -1,1 +1,0 @@
-export { StarIcon, EyeIcon, ForkIcon, IssuesIcon } from '../RepositoryIcons' 
